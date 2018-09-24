@@ -6,7 +6,7 @@ from scipy.stats import norm
 import time
 
 
-def run_solutions(length, dx):
+def run_solution(length, dx):
     nx = length // dx
     D = 50.
     steps = 1000
@@ -32,18 +32,6 @@ def run_solutions(length, dx):
     ts = ref_ts * 5
     fake_time = 0
 
-    # plt.figure(figsize=(15, 6))
-    # ax1 = plt.subplot(1, 2, 1)
-    # ax1.set_title("numeric solution")
-    # ax2 = plt.subplot(1, 2, 2)
-    # ax2.set_title("analytic solution")
-
-    # viewer_num = Viewer(vars=(phi), datamin=0., datamax=.5, axes=ax1)
-    # viewer_ana = Viewer(vars=(solution), datamin=0., datamax=.5, axes=ax2)
-
-    # ax1.grid()
-    # ax2.grid()
-
     real_time = 0
     start, end = 0, 0
 
@@ -52,39 +40,35 @@ def run_solutions(length, dx):
             fake_time += ts
             eqCN.solve(var=phi, dt=ts)
             solution.setValue(init_profile * (2 * norm.cdf(x / np.sqrt(2 * D * fake_time)) - 1))
-            # if step % 20 == 0:
-                # viewer_num.plot()
-                # viewer_ana.plot()
-                # print step
         else:
             fake_time += ts
             start = time.time()
             eqCN.solve(var=phi, dt=ts)
-            solution.setValue(init_profile * (2 * norm.cdf(x / np.sqrt(2 * D * fake_time)) - 1))
             end = time.time()
+            solution.setValue(init_profile * (2 * norm.cdf(x / np.sqrt(2 * D * fake_time)) - 1))
             real_time += end - start
-            # if step % 100 == 0:
-                # viewer_num.plot()
-                # viewer_ana.plot()
-                # print step
     return real_time
 
-grid_steps = np.linspace(0.005, 0.5, 100)
+
+steps_number = np.linspace(1e2, 3e4, 100)
 times = np.array([])
-i = 0
-for grid_step in grid_steps:
-    print i
-    times = np.append(times, run_solutions(50, grid_step))
-    i += 1
+with open("time.txt", 'w') as f:
+    f.truncate()
+    f.write("steps_number time\n")
+    for k in steps_number:
+        print k
+        f.write(str(k) + ' ' + str(run_solution(50, 50 / k)) + '\n')
+        # times = np.append(times, run_solutions(50, 50 / k))
 
-file = open("time.txt", "w")
-file.write("frist line is grid steps, the second is times\n")
-file.write(str(list(grid_steps)) + '\n')
-file.write(str(list(times)))
-file.close()
+# file = open("time.txt", "w")
+# file.truncate()
+# file.write("first line is number of grid steps, the second is times\n")
+# file.write(str(list(steps_number)) + '\n')
+# file.write(str(list(times)))
+# file.close()
 
-plt.plot(grid_steps[1:], times[1:])
-plt.ylabel("time(sec)")
-plt.xlabel("grid step size")
-plt.grid()
-plt.show()
+# plt.plot(steps_number[1:], times[1:])
+# plt.ylabel("time(sec)")
+# plt.xlabel("grid steps number")
+# plt.grid()
+# plt.show()

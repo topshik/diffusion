@@ -37,7 +37,9 @@ def run_solution(length, dx):
     ax2 = plt.subplot(2, 2, 2)
     ax2.set_title("analytic solution")
     ax3 = plt.subplot(2, 2, 3)
-    ax3.set_title("MSE plot")
+    ax3.set_title("total SE plot")
+    ax4 = plt.subplot(2, 2, 4)
+    ax4.set_title("SE from coordinate")
 
     viewer_num = Viewer(vars=(phi), datamin=0., datamax=.5, axes=ax1)
     viewer_ana = Viewer(vars=(solution), datamin=0., datamax=.5, axes=ax2)
@@ -45,8 +47,10 @@ def run_solution(length, dx):
     ax1.grid()
     ax2.grid()
     ax3.grid()
- 
-    mse_arr = np.array([0])
+    ax4.grid()
+
+    se_coord_arr = np.array([0])
+    total_se_arr = np.array([0])
     time_arr = np.array([0])
 
     for step in range(steps):
@@ -54,11 +58,21 @@ def run_solution(length, dx):
         time_arr = np.append(time_arr, time)
         eqCN.solve(var=phi, dt=ts)
         solution.setValue(init_profile * (2 * norm.cdf(x / np.sqrt(2 * D * time)) - 1))
-        mse_arr = np.append(mse_arr, ((np.array(phi) - np.array(solution)) ** 2).mean())
+        se_coord_arr = (np.array(phi) - np.array(solution)) ** 2
+        total_se_arr = np.append(total_se_arr, se_coord_arr.sum())
         if step % 20 == 0:
             viewer_num.plot()
             viewer_ana.plot()
-            ax3.plot(time_arr, mse_arr)
+            ax3.clear()
+            ax3.grid()
+            ax3.set_title("total SE plot")
+            ax3.plot(time_arr, total_se_arr)
+
+            ax4.cla()
+            ax4.grid()
+            ax4.set_title("SE from coordinate")
+            ax4.plot(np.array(x), se_coord_arr)
+
             print step
 
 
